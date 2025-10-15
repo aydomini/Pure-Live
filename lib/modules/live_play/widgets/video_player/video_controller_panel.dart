@@ -931,38 +931,43 @@ class DanmakuSetting extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white),
             ),
           ),
-          SizedBox(
-            height: Platform.isWindows ? 50 : 35,
-            child: ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              visualDensity: VisualDensity.compact,
-              leading: Text('距离顶部', style: label),
-              title: Slider(
-                divisions: 10,
-                min: 0.0,
-                max: 0.4,
-                value: controller.danmakuTopArea.value,
-                onChanged: (val) => controller.danmakuTopArea.value = val,
-              ),
-              trailing: Text('${(controller.danmakuTopArea.value * 100).toInt()}%', style: digit),
-            ),
-          ),
-          SizedBox(
-            height: Platform.isWindows ? 50 : 35,
-            child: ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              visualDensity: VisualDensity.compact,
-              leading: Text('距离底部', style: label),
-              title: Slider(
-                divisions: 10,
-                min: 0.0,
-                max: 0.4,
-                value: controller.danmakuBottomArea.value,
-                onChanged: (val) => controller.danmakuBottomArea.value = val,
-              ),
-              trailing: Text('${(controller.danmakuBottomArea.value * 100).toInt()}%', style: digit),
+          // 弹幕显示区域选择
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('弹幕显示区域', style: label),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    for (int i = 0; i < SettingsService.danmakuAreaModes.length; i++)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: Text(
+                            SettingsService.danmakuAreaModes[i]['name'],
+                            style: TextStyle(
+                              color: controller.settings.danmakuAreaMode.value == i
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                          selected: controller.settings.danmakuAreaMode.value == i,
+                          onSelected: (selected) {
+                            if (selected) {
+                              controller.settings.setDanmakuAreaMode(i);
+                            }
+                          },
+                          selectedColor: Theme.of(context).colorScheme.primary,
+                          backgroundColor: Colors.white.withOpacity(0.2),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
             ),
           ),
           SizedBox(

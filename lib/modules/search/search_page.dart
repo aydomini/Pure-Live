@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pure_live/core/sites.dart';
 import 'package:pure_live/common/l10n/generated/l10n.dart';
 import 'package:pure_live/modules/search/search_controller.dart' as pure_live;
+import 'package:pure_live/modules/favorite/favorite_controller.dart';
 
 class SearchPage extends GetView<pure_live.SearchController> {
   const SearchPage({super.key});
@@ -22,7 +23,8 @@ class SearchPage extends GetView<pure_live.SearchController> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 12.0),
             prefixIcon: IconButton(
               onPressed: () {
-                Navigator.of(Get.context!).pop();
+                // 切换回收藏页（第一个Tab），而不是执行Navigator.pop()
+                Get.find<FavoriteController>().tabBottomIndex.value = 0;
               },
               icon: const Icon(Icons.arrow_back),
             ),

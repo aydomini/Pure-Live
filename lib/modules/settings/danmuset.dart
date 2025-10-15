@@ -70,40 +70,38 @@ class DanmakuSetting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Color color = Theme.of(context).colorScheme.primary.withValues(alpha: 0.9);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Obx(
-          () => ListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            leading: Text("距离顶部区域"),
-            title: Slider(
-              divisions: 10,
-              min: 0.0,
-              max: 0.4,
-              value: controller.danmakuTopArea.value,
-              onChanged: (val) => controller.danmakuTopArea.value = val,
-            ),
-            trailing: Text('${(controller.danmakuTopArea.value * 100).toInt()}%'),
-          ),
+        // 弹幕显示区域选择
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Text('弹幕显示区域', style: Theme.of(context).textTheme.titleSmall),
         ),
         Obx(
-          () => ListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            leading: Text('距离底部区域'),
-            title: Slider(
-              divisions: 10,
-              min: 0.0,
-              max: 0.4,
-              value: controller.danmakuBottomArea.value,
-              onChanged: (val) => controller.danmakuBottomArea.value = val,
-            ),
-            trailing: Text('${(controller.danmakuBottomArea.value * 100).toInt()}%'),
+          () => Wrap(
+            spacing: 8,
+            children: [
+              for (int i = 0; i < SettingsService.danmakuAreaModes.length; i++)
+                ChoiceChip(
+                  label: Text(SettingsService.danmakuAreaModes[i]['name']),
+                  selected: controller.danmakuAreaMode.value == i,
+                  selectedColor: color,
+                  labelStyle: TextStyle(
+                    color: controller.danmakuAreaMode.value == i ? Colors.white : null,
+                  ),
+                  onSelected: (selected) {
+                    if (selected) {
+                      controller.setDanmakuAreaMode(i);
+                    }
+                  },
+                ),
+            ],
           ),
         ),
+        const SizedBox(height: 8),
         Obx(
           () => ListTile(
             dense: true,

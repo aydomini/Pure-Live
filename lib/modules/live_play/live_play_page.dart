@@ -8,6 +8,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:pure_live/modules/live_play/play_other.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pure_live/modules/live_play/live_play_controller.dart';
+import 'package:pure_live/modules/live_play/widgets/resizable_divider.dart';
 
 class LivePlayPage extends GetView<LivePlayController> {
   LivePlayPage({super.key});
@@ -196,14 +197,26 @@ class LivePlayPage extends GetView<LivePlayController> {
                     : Row(
                         children: <Widget>[
                           Expanded(child: buildVideoPlayer()),
-                          SizedBox(
-                            width: 400,
-                            child: Column(
-                              children: [
-                                const ResolutionsRow(),
-                                const Divider(height: 1),
-                                Expanded(child: Obx(() => DanmakuListView(room: controller.detail.value!))),
-                              ],
+                          Obx(
+                            () => ResizableDivider(
+                              width: settings.danmakuPanelWidth.value,
+                              minWidth: 200,
+                              maxWidth: 400,
+                              onResize: (newWidth) {
+                                settings.danmakuPanelWidth.value = newWidth;
+                              },
+                            ),
+                          ),
+                          Obx(
+                            () => SizedBox(
+                              width: settings.danmakuPanelWidth.value,
+                              child: Column(
+                                children: [
+                                  const ResolutionsRow(),
+                                  const Divider(height: 1),
+                                  Expanded(child: Obx(() => DanmakuListView(room: controller.detail.value!))),
+                                ],
+                              ),
                             ),
                           ),
                         ],

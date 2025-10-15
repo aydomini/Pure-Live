@@ -224,7 +224,8 @@ class FileRecoverUtils {
     }
   }
 
-  Future<bool> recoverM3u8BackupByShare(SharedMedia media) async {
+  // 注释：SharedMedia 类型来自 share_handler 包，仅 Android 支持
+  Future<bool> recoverM3u8BackupByShare(dynamic media) async {
     try {
       File file = await toFile(media.content!);
       var dir = await getApplicationCacheDirectory();

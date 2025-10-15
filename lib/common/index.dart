@@ -10,7 +10,7 @@ export 'utils/string_to_boolean.dart';
 export 'widgets/index.dart';
 export 'package:flutter_color/flutter_color.dart';
 export 'package:flutter/material.dart';
-export 'package:windows_single_instance/windows_single_instance.dart';
+// export 'package:windows_single_instance/windows_single_instance.dart'; // 仅 macOS/iOS 不需要
 export 'package:pure_live/modules/popular/popular_controller.dart';
 export 'package:pure_live/modules/favorite/favorite_controller.dart';
 export 'package:permission_handler/permission_handler.dart';
@@ -28,7 +28,7 @@ export 'package:pure_live/routes/app_pages.dart';
 export 'package:path_provider/path_provider.dart';
 export 'package:dynamic_color/dynamic_color.dart';
 export 'package:pure_live/routes/route_path.dart';
-export 'package:share_handler/share_handler.dart';
+// export 'package:share_handler/share_handler.dart'; // 仅 macOS/iOS 不需要
 export 'package:pure_live/plugins/window_util.dart';
 export 'package:window_manager/window_manager.dart';
 export 'package:shared_preferences/shared_preferences.dart';

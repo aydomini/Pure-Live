@@ -55,3 +55,11 @@ key.properties
 # /assets/keystore/
 /assets/pure_live_web/
 pubspec.lock
+
+# iOS/macOS 开发临时文件
+ios/.cache/
+ios/Podfile.lock
+
+# Flutter DevTools 配置
+devtools_options.yaml
+distribute_options.yaml

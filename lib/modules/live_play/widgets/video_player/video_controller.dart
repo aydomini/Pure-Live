@@ -131,6 +131,7 @@ class VideoController with ChangeNotifier {
   }
 
   final hideDanmaku = false.obs;
+  final danmakuAreaMode = 0.obs; // 0=全屏，1=1/2屏，2=1/4屏
   final danmakuTopArea = 0.0.obs;
   final danmakuBottomArea = 0.0.obs;
   final danmakuSpeed = 8.0.obs;
@@ -164,6 +165,7 @@ class VideoController with ChangeNotifier {
     videoFitIndex.value = settings.videoFitIndex.value;
     videoFit.value = settings.videofitArrary[videoFitIndex.value];
     hideDanmaku.value = settings.hideDanmaku.value;
+    danmakuAreaMode.value = settings.danmakuAreaMode.value;
     danmakuTopArea.value = settings.danmakuTopArea.value;
     danmakuBottomArea.value = settings.danmakuBottomArea.value;
     danmakuSpeed.value = settings.danmakuSpeed.value;
@@ -404,17 +406,20 @@ class VideoController with ChangeNotifier {
       PrefUtil.setBool('hideDanmaku', data);
       settings.hideDanmaku.value = data;
     });
-    danmakuTopArea.value = PrefUtil.getDouble('danmakuTopArea') ?? 0.0;
+    // topArea 和 bottomArea 由 settings.danmakuAreaMode 控制，这里只监听变化用于更新弹幕显示
     danmakuTopArea.listen((data) {
-      PrefUtil.setDouble('danmakuTopArea', data);
-      settings.danmakuTopArea.value = data;
       updateDanmaku();
     });
-    danmakuBottomArea.value = PrefUtil.getDouble('danmakuBottomArea') ?? 0.0;
     danmakuBottomArea.listen((data) {
-      PrefUtil.setDouble('danmakuBottomArea', data);
-      settings.danmakuBottomArea.value = data;
       updateDanmaku();
+    });
+
+    // 监听 settings 的 topArea 和 bottomArea 变化，同步到 controller
+    settings.danmakuTopArea.listen((data) {
+      danmakuTopArea.value = data;
+    });
+    settings.danmakuBottomArea.listen((data) {
+      danmakuBottomArea.value = data;
     });
     danmakuSpeed.value = PrefUtil.getDouble('danmakuSpeed') ?? 8;
     danmakuSpeed.listen((data) {

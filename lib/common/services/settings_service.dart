@@ -91,6 +91,16 @@ class SettingsService extends GetxController {
     backupDirectory.listen((String value) {
       PrefUtil.setString('backupDirectory', value);
     });
+
+    danmakuPanelWidth.listen((value) {
+      PrefUtil.setDouble('danmakuPanelWidth', value);
+    });
+
+    danmakuAreaMode.listen((value) {
+      PrefUtil.setInt('danmakuAreaMode', value);
+      _updateDanmakuArea();
+    });
+
     onInitShutDown();
     _stopWatchTimer.fetchEnded.listen((value) {
       _stopWatchTimer.onStopTimer();
@@ -269,8 +279,12 @@ class SettingsService extends GetxController {
   final enableAutoCheckUpdate = (PrefUtil.getBool('enableAutoCheckUpdate') ?? true).obs;
   final videoFitIndex = (PrefUtil.getInt('videoFitIndex') ?? 0).obs;
   final hideDanmaku = (PrefUtil.getBool('hideDanmaku') ?? false).obs;
+
+  // 弹幕显示区域模式：0=全屏，1=1/2屏（上半部分），2=1/4屏（上半部分）
+  final danmakuAreaMode = (PrefUtil.getInt('danmakuAreaMode') ?? 0).obs;
+
   final danmakuTopArea = (PrefUtil.getDouble('danmakuTopArea') ?? 0.0).obs;
-  final danmakuBottomArea = (PrefUtil.getDouble('danmakuBottomArea') ?? 0.5).obs;
+  final danmakuBottomArea = (PrefUtil.getDouble('danmakuBottomArea') ?? 0.0).obs;
   final danmakuSpeed = (PrefUtil.getDouble('danmakuSpeed') ?? 8.0).obs;
   final danmakuFontSize = (PrefUtil.getDouble('danmakuFontSize') ?? 16.0).obs;
   final danmakuFontBorder = (PrefUtil.getDouble('danmakuFontBorder') ?? 4.0).obs;
@@ -295,6 +309,10 @@ class SettingsService extends GetxController {
 
   final enableAutoShutDownTime = (PrefUtil.getBool('enableAutoShutDownTime') ?? false).obs;
   final doubleExit = (PrefUtil.getBool('doubleExit') ?? true).obs;
+
+  // 弹幕面板宽度（宽屏模式下）
+  final danmakuPanelWidth = (PrefUtil.getDouble('danmakuPanelWidth') ?? 300.0).obs;
+
   static const List<String> resolutions = ['原画', '蓝光8M', '蓝光4M', '超清', '流畅'];
 
   final volume = (PrefUtil.getDouble('volume') ?? 0.5).obs;
@@ -336,6 +354,30 @@ class SettingsService extends GetxController {
   void changeAutoRefreshConfig(int minutes) {
     autoRefreshTime.value = minutes;
     PrefUtil.setInt('autoRefreshTime', minutes);
+  }
+
+  // 弹幕区域模式描述
+  static const List<Map<String, dynamic>> danmakuAreaModes = [
+    {'mode': 0, 'name': '全屏', 'topArea': 0.0, 'bottomArea': 0.0},
+    {'mode': 1, 'name': '2/3屏', 'topArea': 0.0, 'bottomArea': 0.33},
+    {'mode': 2, 'name': '1/3屏', 'topArea': 0.0, 'bottomArea': 0.67},
+  ];
+
+  // 根据弹幕区域模式更新 topArea 和 bottomArea
+  void _updateDanmakuArea() {
+    final mode = danmakuAreaModes.firstWhere(
+      (m) => m['mode'] == danmakuAreaMode.value,
+      orElse: () => danmakuAreaModes[0],
+    );
+    danmakuTopArea.value = mode['topArea'];
+    danmakuBottomArea.value = mode['bottomArea'];
+  }
+
+  // 设置弹幕区域模式
+  void setDanmakuAreaMode(int mode) {
+    if (mode >= 0 && mode < danmakuAreaModes.length) {
+      danmakuAreaMode.value = mode;
+    }
   }
 
   static const List<String> platforms = ['bilibili', 'douyu', 'huya', 'douyin', 'kuaishow', 'cc', '网络'];
@@ -652,18 +694,27 @@ class SettingsService extends GetxController {
     preferPlatform.value = json['preferPlatform'] ?? platforms[0];
     videoFitIndex.value = json['videoFitIndex'] ?? 0;
     hideDanmaku.value = json['hideDanmaku'] ?? false;
-    danmakuTopArea.value = json['danmakuTopArea'] != null
-        ? double.parse(json['danmakuTopArea'].toString()) > 0.4
-              ? 0.4
-              : double.parse(json['danmakuTopArea'].toString())
-        : 0.0;
-    danmakuBottomArea.value = double.parse(json['danmakuBottomArea'].toString());
+    danmakuAreaMode.value = json['danmakuAreaMode'] ?? 0;
+    // 如果有 danmakuAreaMode，根据模式更新区域；否则使用旧的 topArea/bottomArea 值
+    if (json['danmakuAreaMode'] != null) {
+      _updateDanmakuArea();
+    } else {
+      danmakuTopArea.value = json['danmakuTopArea'] != null
+          ? double.parse(json['danmakuTopArea'].toString()) > 0.4
+                ? 0.4
+                : double.parse(json['danmakuTopArea'].toString())
+          : 0.0;
+      danmakuBottomArea.value = json['danmakuBottomArea'] != null
+          ? double.parse(json['danmakuBottomArea'].toString())
+          : 0.0;
+    }
     danmakuSpeed.value = json['danmakuSpeed'] != null ? double.parse(json['danmakuSpeed'].toString()) : 8.0;
     danmakuFontSize.value = json['danmakuFontSize'] != null ? double.parse(json['danmakuFontSize'].toString()) : 16.0;
     danmakuFontBorder.value = json['danmakuFontBorder'] != null
         ? double.parse(json['danmakuFontBorder'].toString())
         : 4.0;
     danmakuOpacity.value = json['danmakuOpacity'] != null ? double.parse(json['danmakuOpacity'].toString()) : 1.0;
+    danmakuPanelWidth.value = json['danmakuPanelWidth'] != null ? double.parse(json['danmakuPanelWidth'].toString()) : 300.0;
     doubleExit.value = json['doubleExit'] ?? true;
     videoPlayerIndex.value = json['videoPlayerIndex'] ?? 0;
     enableCodec.value = json['enableCodec'] ?? true;
@@ -717,12 +768,14 @@ class SettingsService extends GetxController {
 
     json['videoFitIndex'] = videoFitIndex.value;
     json['hideDanmaku'] = hideDanmaku.value;
+    json['danmakuAreaMode'] = danmakuAreaMode.value;
     json['danmakuTopArea'] = danmakuTopArea.value;
     json['danmakuBottomArea'] = danmakuBottomArea.value;
     json['danmakuSpeed'] = danmakuSpeed.value;
     json['danmakuFontSize'] = danmakuFontSize.value;
     json['danmakuFontBorder'] = danmakuFontBorder.value;
     json['danmakuOpacity'] = danmakuOpacity.value;
+    json['danmakuPanelWidth'] = danmakuPanelWidth.value;
     json['doubleExit'] = doubleExit.value;
     json['videoPlayerIndex'] = videoPlayerIndex.value;
     json['enableCodec'] = enableCodec.value;

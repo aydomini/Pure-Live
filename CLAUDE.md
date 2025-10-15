@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-纯粹直播是一个使用 Flutter 开发的第三方直播播放器应用，支持多个直播平台（哔哩哔哩、虎牙、斗鱼、快手、抖音、网易CC）以及 M3U8 自定义源。项目使用 GetX 进行状态管理，目前仅支持 **macOS** 和 **iOS** 平台。
+纯粹直播是一个使用 Flutter 开发的第三方直播播放器应用，支持多个直播平台（哔哩哔哩、虎牙、斗鱼、快手、抖音、网易CC）以及 M3U8 自定义源。项目使用 GetX 进行状态管理，专注于 **macOS** 和 **iOS** 平台（已移除 Android、Windows、Linux 支持）。
 
 ## 开发环境要求
 
@@ -173,6 +173,9 @@ lib/
 │   ├── history/        # 历史记录
 │   ├── home/           # 首页
 │   ├── live_play/      # 直播播放器
+│   │   └── widgets/
+│   │       ├── resizable_divider.dart        # 可调整大小的分隔条
+│   │       └── video_player/                  # 视频播放器组件
 │   ├── popular/        # 推荐页
 │   ├── search/         # 搜索
 │   ├── settings/       # 设置
@@ -320,6 +323,29 @@ lib/
 - iOS 端通过文件分享功能导入
 - macOS 端可通过文件选择器导入
 
+### 弹幕显示区域
+
+弹幕显示区域支持3种模式，可在设置或播放器控制面板中调节：
+
+**配置位置**：`lib/common/services/settings_service.dart:360-364`
+```dart
+static const List<Map<String, dynamic>> danmakuAreaModes = [
+  {'mode': 0, 'name': '全屏', 'topArea': 0.0, 'bottomArea': 0.0},     // 100%显示区域
+  {'mode': 1, 'name': '2/3屏', 'topArea': 0.0, 'bottomArea': 0.33},   // 67%显示区域（上方2/3）
+  {'mode': 2, 'name': '1/3屏', 'topArea': 0.0, 'bottomArea': 0.67},   // 33%显示区域（上方1/3）
+];
+```
+
+**实现逻辑**：
+- `topArea` 和 `bottomArea` 表示屏幕顶部和底部预留的**空白区域比例**
+- 弹幕实际显示区域 = 屏幕高度 × (1 - topArea - bottomArea)
+- 弹幕轨道数 = floor(弹幕显示区域高度 / 单行弹幕高度)
+
+**UI组件**：
+- 设置页面：`lib/modules/settings/danmuset.dart` - 使用 `ChoiceChip` 选择
+- 播放器控制面板：`lib/modules/live_play/widgets/video_player/video_controller_panel.dart` - 实时切换
+- 弹幕渲染：`lib/pkg/canvas_danmaku/danmaku_screen.dart` - 计算显示区域
+
 ## 依赖说明
 
 **关键依赖：**
@@ -408,6 +434,41 @@ brew install --cask flutter
 **问题2：应用安装后无法打开**
 **解决方案：**
 - 在设备的"设置 → 通用 → VPN与设备管理"中信任开发者
+
+### 导航和路由问题
+
+**问题1：点击搜索页返回按钮后应用黑屏**
+**原因分析：**
+- SearchPage 是主页的第4个Tab，通过侧边栏按钮切换显示（非路由跳转）
+- 返回按钮错误使用了 `Navigator.of(Get.context!).pop()`
+- 由于搜索页不是通过路由push的，`pop()` 会错误地弹出整个主页
+- 主页设置了 `canPop: false`，强制pop后导航栈为空，导致黑屏
+
+**解决方案：**
+修改 `lib/modules/search/search_page.dart:25-27`：
+```dart
+// 错误做法 ❌
+prefixIcon: IconButton(
+  onPressed: () {
+    Navigator.of(Get.context!).pop();  // 会弹出整个主页
+  },
+  icon: const Icon(Icons.arrow_back),
+),
+
+// 正确做法 ✅
+prefixIcon: IconButton(
+  onPressed: () {
+    // 切换回收藏页（第一个Tab）
+    Get.find<FavoriteController>().tabBottomIndex.value = 0;
+  },
+  icon: const Icon(Icons.arrow_back),
+),
+```
+
+**要点**：
+- Tab式导航应使用 `FavoriteController.tabBottomIndex` 控制切换
+- 只有通过路由跳转的页面才使用 `Navigator.pop()` 或 `Get.back()`
+- 主页的Tab切换监听在 `home_page.dart:43-45` 实现
 
 ## 调试技巧
 

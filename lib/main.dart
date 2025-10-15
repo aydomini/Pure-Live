@@ -16,7 +16,8 @@ void main(List<String> args) async {
   PrefUtil.prefs = await SharedPreferences.getInstance();
   MediaKit.ensureInitialized();
   if (Platform.isWindows) {
-    await WindowsSingleInstance.ensureSingleInstance(args, "pure_live_instance_checker");
+    // 注释：WindowsSingleInstance 仅 Windows 支持，macOS/iOS 不需要
+    // await WindowsSingleInstance.ensureSingleInstance(args, "pure_live_instance_checker");
     await windowManager.ensureInitialized();
     await WindowUtil.init(width: 1280, height: 720);
   }
@@ -66,16 +67,17 @@ class _MyAppState extends State<MyApp> with WindowListener {
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
+  // 注释：share_handler 包仅支持 Android，macOS/iOS 版本不需要此功能
   Future<void> initShareM3uState() async {
-    if (Platform.isAndroid) {
-      final handler = ShareHandler.instance;
-      await handler.getInitialSharedMedia();
-      handler.sharedMediaStream.listen((SharedMedia media) async {
-        if (isDataSourceM3u(media.content!)) {
-          FileRecoverUtils().recoverM3u8BackupByShare(media);
-        }
-      });
-    }
+    // if (Platform.isAndroid) {
+    //   final handler = ShareHandler.instance;
+    //   await handler.getInitialSharedMedia();
+    //   handler.sharedMediaStream.listen((SharedMedia media) async {
+    //     if (isDataSourceM3u(media.content!)) {
+    //       FileRecoverUtils().recoverM3u8BackupByShare(media);
+    //     }
+    //   });
+    // }
   }
 
   @override
