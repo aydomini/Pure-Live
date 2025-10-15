@@ -56,7 +56,7 @@ class DouyinSite implements LiveSite {
       if (headers.containsKey("cookie")) {
         return headers;
       }
-      var head = await HttpClient.instance.head("https://live.douyin.com", header: headers);
+      var head = await MyHttpClient.instance.head("https://live.douyin.com", header: headers);
       head.headers["set-cookie"]?.forEach((element) {
         var cookie = element.split(";")[0];
         if (cookie.contains("ttwid")) {
@@ -73,7 +73,7 @@ class DouyinSite implements LiveSite {
   @override
   Future<List<LiveCategory>> getCategores(int page, int pageSize) async {
     List<LiveCategory> categories = [];
-    var result = await HttpClient.instance.getText(
+    var result = await MyHttpClient.instance.getText(
       "https://live.douyin.com/",
       queryParameters: {},
       header: await getRequestHeaders(),
@@ -150,7 +150,7 @@ class DouyinSite implements LiveSite {
     );
     var requestUrl = await getAbogusUrl(uri.toString(), kDefaultUserAgent);
 
-    var result = await HttpClient.instance.getJson(requestUrl, header: await getRequestHeaders());
+    var result = await MyHttpClient.instance.getJson(requestUrl, header: await getRequestHeaders());
 
     var hasMore = (result["data"]["data"] as List).length >= 15;
     var items = <LiveRoom>[];
@@ -202,7 +202,7 @@ class DouyinSite implements LiveSite {
     );
     var requestUrl = await getAbogusUrl(uri.toString(), kDefaultUserAgent);
 
-    var result = await HttpClient.instance.getJson(requestUrl, header: await getRequestHeaders());
+    var result = await MyHttpClient.instance.getJson(requestUrl, header: await getRequestHeaders());
 
     var hasMore = (result["data"]["data"] as List).length >= 15;
     var items = <LiveRoom>[];
@@ -381,7 +381,7 @@ class DouyinSite implements LiveSite {
   /// 进入直播间前需要先获取cookie
   /// - [webRid] 直播间RID
   Future<String> _getWebCookie(String webRid) async {
-    var headResp = await HttpClient.instance.head("https://live.douyin.com/$webRid", header: headers);
+    var headResp = await MyHttpClient.instance.head("https://live.douyin.com/$webRid", header: headers);
     var dyCookie = "";
     headResp.headers["set-cookie"]?.forEach((element) {
       var cookie = element.split(";")[0];
@@ -402,7 +402,7 @@ class DouyinSite implements LiveSite {
   /// - [webRid] 直播间RID
   Future<Map> _getRoomDataByHtml(String webRid) async {
     var dyCookie = await _getWebCookie(webRid);
-    var result = await HttpClient.instance.getText(
+    var result = await MyHttpClient.instance.getText(
       "https://live.douyin.com/$webRid",
       queryParameters: {},
       header: {
@@ -449,7 +449,7 @@ class DouyinSite implements LiveSite {
     );
     var requestUrl = await getAbogusUrl(uri.toString(), kDefaultUserAgent);
     var requestHeader = await getRequestHeaders();
-    var result = await HttpClient.instance.getJson(requestUrl, header: requestHeader);
+    var result = await MyHttpClient.instance.getJson(requestUrl, header: requestHeader);
 
     return result["data"];
   }
@@ -457,7 +457,7 @@ class DouyinSite implements LiveSite {
   /// 通过roomId获取直播间信息
   /// - [roomId] 直播间ID
   Future<Map> _getRoomDataByRoomId(String roomId) async {
-    var result = await HttpClient.instance.getJson(
+    var result = await MyHttpClient.instance.getJson(
       'https://webcast.amemv.com/webcast/room/reflow/info/',
       queryParameters: {
         "type_id": 0,
@@ -573,7 +573,7 @@ class DouyinSite implements LiveSite {
     );
     //var requlestUrl = await getAbogusUrl(uri.toString());
     var requlestUrl = uri.toString();
-    var headResp = await HttpClient.instance.head('https://live.douyin.com', header: headers);
+    var headResp = await MyHttpClient.instance.head('https://live.douyin.com', header: headers);
     var dyCookie = "";
     headResp.headers["set-cookie"]?.forEach((element) {
       var cookie = element.split(";")[0];
@@ -585,7 +585,7 @@ class DouyinSite implements LiveSite {
       }
     });
 
-    var result = await HttpClient.instance.getJson(
+    var result = await MyHttpClient.instance.getJson(
       requlestUrl,
       queryParameters: {},
       header: {

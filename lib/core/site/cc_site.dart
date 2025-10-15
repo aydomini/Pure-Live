@@ -38,7 +38,7 @@ class CCSite implements LiveSite {
       LiveCategory(id: "4", name: "手游", children: []),
       LiveCategory(id: "5", name: "其他", children: []),
     ];
-    var res = await HttpClient.instance.getText(
+    var res = await MyHttpClient.instance.getText(
       "https://cc.163.com/category/",
       queryParameters: {"format": "json"},
       header: {"user-agent": kUserAgent},
@@ -82,7 +82,7 @@ class CCSite implements LiveSite {
 
   @override
   Future<LiveCategoryResult> getCategoryRooms(LiveArea category, {int page = 1}) async {
-    var result = await HttpClient.instance.getJson(
+    var result = await MyHttpClient.instance.getJson(
       "https://cc.163.com/_next/data/nextjs/category/${category.areaId}.json",
       queryParameters: {"game": category.areaId},
     );
@@ -152,7 +152,7 @@ class CCSite implements LiveSite {
 
   @override
   Future<LiveCategoryResult> getRecommendRooms({int page = 1, required String nick}) async {
-    var result = await HttpClient.instance.getJson(
+    var result = await MyHttpClient.instance.getJson(
       "https://cc.163.com/api/category/live/",
       queryParameters: {"format": "json", "start": (page - 1) * 20, "size": 20},
     );
@@ -181,14 +181,14 @@ class CCSite implements LiveSite {
   Future<LiveRoom> getRoomDetail({required String platform, required String roomId}) async {
     try {
       var url = "https://api.cc.163.com/v1/activitylives/anchor/lives";
-      var result = await HttpClient.instance.getJson(
+      var result = await MyHttpClient.instance.getJson(
         url,
         queryParameters: {'anchor_ccid': roomId},
         header: {"user-agent": kUserAgent},
       );
       var channelId = result['data'][roomId]['channel_id'];
       String urlToGetReal = "https://cc.163.com/live/channel/?channelids=$channelId";
-      var resultReal = await HttpClient.instance.getJson(urlToGetReal, queryParameters: {'anchor_ccid': roomId});
+      var resultReal = await MyHttpClient.instance.getJson(urlToGetReal, queryParameters: {'anchor_ccid': roomId});
       var roomInfo = resultReal["data"][0];
       return LiveRoom(
         cover: roomInfo["cover"],
@@ -218,7 +218,7 @@ class CCSite implements LiveSite {
 
   @override
   Future<LiveSearchRoomResult> searchRooms(String keyword, {int page = 1}) async {
-    var result = await HttpClient.instance.getJson(
+    var result = await MyHttpClient.instance.getJson(
       "https://cc.163.com/search/anchor",
       queryParameters: {"query": keyword, "size": 20, "page": page},
     );
@@ -245,7 +245,7 @@ class CCSite implements LiveSite {
 
   @override
   Future<LiveSearchAnchorResult> searchAnchors(String keyword, {int page = 1}) async {
-    var resultText = await HttpClient.instance.getJson(
+    var resultText = await MyHttpClient.instance.getJson(
       "https://search.cdn.huya.com/",
       queryParameters: {
         "m": "Search",

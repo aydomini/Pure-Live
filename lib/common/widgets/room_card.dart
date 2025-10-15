@@ -30,11 +30,13 @@ class RoomCard extends StatelessWidget {
     try {
       return CachedNetworkImageProvider(
         avatar,
+        cacheManager: CustomCacheManager.instance,
         errorListener: (err) {
-          log("CachedNetworkImageProvider: Image failed to load!");
+          log("头像加载失败: $avatar", name: 'RoomCard');
         },
       );
     } catch (e) {
+      log("头像加载异常: $e", name: 'RoomCard');
       return null;
     }
   }

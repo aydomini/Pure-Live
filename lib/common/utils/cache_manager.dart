@@ -9,8 +9,10 @@ class CustomCacheManager {
   static CacheManager instance = CacheManager(
     Config(
       key,
-      stalePeriod: const Duration(days: 1),
-      maxNrOfCacheObjects: 20,
+      // 缩短缓存时间，避免占用过多文件描述符
+      stalePeriod: const Duration(hours: 3),
+      // 严格限制缓存数量，防止文件描述符泄漏
+      maxNrOfCacheObjects: 30,
       repo: JsonCacheInfoRepository(databaseName: key),
       fileSystem: IOFileSystem(key),
       fileService: HttpFileService(),

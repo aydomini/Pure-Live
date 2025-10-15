@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:convert';
 import 'package:get/get.dart';
-import 'package:dio/dio.dart' as dio;
 import 'package:pure_live/common/index.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:date_format/date_format.dart' hide S;
@@ -47,15 +46,12 @@ class FileRecoverUtils {
   }
 
   Future<bool> recoverNetworkM3u8Backup(String url, String fileName) async {
-    var dioInstance = dio.Dio(dio.BaseOptions(
-      connectTimeout: const Duration(seconds: 10),
-      //响应时间为3秒
-      receiveTimeout: const Duration(seconds: 10),
-    ));
+    // 使用单例 HttpClient 而非创建临时 Dio 实例
     var dir = await getApplicationCacheDirectory();
     final m3ufile = File("${dir.path}${Platform.pathSeparator}$fileName.m3u");
     try {
-      dio.Response response = await dioInstance.download(url, m3ufile.path);
+      // 使用共享的 HttpClient 实例进行下载
+      var response = await MyHttpClient.instance.dio.download(url, m3ufile.path);
       if (response.statusCode != 200 && response.statusCode != 304) {
         SnackBarUtil.error('文件下载失败请重试');
       }
@@ -216,7 +212,7 @@ class FileRecoverUtils {
   Future<bool> recoverSettingsBackup(String httpAddress) async {
     final SettingsService service = Get.find<SettingsService>();
     try {
-      final response = await await HttpClient.instance
+      final response = await await MyHttpClient.instance
           .postJson('$httpAddress/api/setSettings', queryParameters: {"settings": jsonEncode(service.toJson())});
       return jsonDecode(response)['data'];
     } catch (e) {

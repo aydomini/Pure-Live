@@ -3,11 +3,15 @@ import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/services.dart';
 import 'package:pure_live/common/index.dart';
+import 'package:pure_live/core/common/http_client.dart';
 import 'package:pure_live/routes/app_navigation.dart';
+import 'package:pure_live/plugins/file_recover_utils.dart';
 
 class ToolBoxController extends GetxController {
   final TextEditingController roomJumpToController = TextEditingController();
   final TextEditingController getUrlController = TextEditingController();
+  final TextEditingController m3uUrlController = TextEditingController();
+  final TextEditingController m3uNameController = TextEditingController();
 
   void jumpToRoom(String e) async {
     if (e.isEmpty) {
@@ -212,13 +216,14 @@ class ToolBoxController extends GetxController {
       "Sec-Fetch-Dest": "empty",
       "Accept-Language": "zh-CN,zh;q=0.9",
     };
-    dio.Response response = await dio.Dio().get(
+    // 使用共享的 HttpClient 实例进行网络请求
+    dio.Response response = await MyHttpClient.instance.dio.get(
       realUrl,
       options: dio.Options(followRedirects: true, headers: headers, maxRedirects: 100),
     );
     final liveResponseRegExp = RegExp(r"/reflow/(\d+)");
     String reflow = liveResponseRegExp.firstMatch(response.realUri.toString())?.group(0) ?? "";
-    var liveResponse = await dio.Dio().get(
+    var liveResponse = await MyHttpClient.instance.dio.get(
       "https://webcast.amemv.com/webcast/room/reflow/info/",
       queryParameters: {
         "room_id": reflow.split("/").last.toString(),
@@ -238,7 +243,8 @@ class ToolBoxController extends GetxController {
   Future<String> getLocation(String url) async {
     try {
       if (url.isEmpty) return "";
-      await dio.Dio().get(url, options: dio.Options(followRedirects: false));
+      // 使用共享的 HttpClient 实例进行网络请求
+      await MyHttpClient.instance.dio.get(url, options: dio.Options(followRedirects: false));
     } on dio.DioException catch (e) {
       if (e.response!.statusCode == 302) {
         var redirectUrl = e.response!.headers.value("Location");
@@ -250,5 +256,59 @@ class ToolBoxController extends GetxController {
       log(e.toString(), name: "getLocation");
     }
     return "";
+  }
+
+  // M3U 导入相关方法
+  Future<void> importM3uFromUrl() async {
+    final url = m3uUrlController.text.trim();
+    final fileName = m3uNameController.text.trim();
+
+    if (url.isEmpty) {
+      SmartDialog.showToast('请输入下载链接');
+      return;
+    }
+
+    // 验证 URL
+    final urlRegExp = RegExp(
+      r"((https?:www\.)|(https?:\/\/)|(www\.))[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}(\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)?",
+    );
+    if (!urlRegExp.hasMatch(url)) {
+      SmartDialog.showToast('请输入正确的下载链接');
+      return;
+    }
+
+    if (fileName.isEmpty) {
+      SmartDialog.showToast('请输入文件名');
+      return;
+    }
+
+    try {
+      SmartDialog.showLoading(msg: "正在下载...");
+      final fileRecoverUtils = FileRecoverUtils();
+      final success = await fileRecoverUtils.recoverNetworkM3u8Backup(url, fileName);
+      SmartDialog.dismiss(status: SmartStatus.loading);
+
+      if (success) {
+        // 清空输入框
+        m3uUrlController.clear();
+        m3uNameController.clear();
+        SmartDialog.showToast('导入成功！请前往"分区-网络"查看');
+      }
+    } catch (e) {
+      SmartDialog.dismiss(status: SmartStatus.loading);
+      SmartDialog.showToast('导入失败：${e.toString()}');
+    }
+  }
+
+  Future<void> importM3uFromLocal() async {
+    try {
+      final fileRecoverUtils = FileRecoverUtils();
+      final success = await fileRecoverUtils.recoverM3u8Backup();
+      if (success) {
+        SmartDialog.showToast('导入成功！请前往"分区-网络"查看');
+      }
+    } catch (e) {
+      SmartDialog.showToast('导入失败：${e.toString()}');
+    }
   }
 }

@@ -98,7 +98,9 @@ class LivePlayController extends StateController {
       videoController?.showSettting.toggle();
       return await Future.value(false);
     }
-    if (videoController!.isFullscreen.value) {
+    // 移动平台（Android/iOS）：全屏时点返回先退出全屏，不直接退出页面
+    // 桌面平台（macOS/Windows）：全屏时点返回直接退出页面，保持系统全屏状态
+    if (videoController!.isFullscreen.value && (Platform.isAndroid || Platform.isIOS)) {
       videoController?.exitFullScreen();
       return await Future.value(false);
     }

@@ -59,6 +59,16 @@ pubspec.lock
 # iOS/macOS 开发临时文件
 ios/.cache/
 ios/Podfile.lock
+macos/Podfile.lock
+**/Pods/
+**/.DS_Store
+
+# Xcode DerivedData
+**/DerivedData/
+
+# DMG 打包产物
+*.dmg
+temp.dmg
 
 # Flutter DevTools 配置
 devtools_options.yaml

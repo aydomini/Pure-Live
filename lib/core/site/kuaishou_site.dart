@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:math' as math;
-import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'dart:developer' as developer;
 import 'package:pure_live/core/sites.dart';
 import 'package:cookie_jar/cookie_jar.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:pure_live/model/live_category.dart';
 import 'package:pure_live/plugins/fake_useragent.dart';
 import 'package:pure_live/common/models/live_area.dart';
@@ -16,7 +16,6 @@ import 'package:pure_live/model/live_search_result.dart';
 import 'package:pure_live/common/models/live_message.dart';
 import 'package:pure_live/core/danmaku/empty_danmaku.dart';
 import 'package:pure_live/model/live_category_result.dart';
-import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:pure_live/core/interface/live_danmaku.dart';
 import 'package:pure_live/common/services/settings_service.dart';
 
@@ -107,7 +106,7 @@ class KuaishowSite implements LiveSite {
   }
 
   Future<List<LiveArea>> getSubCategores(LiveCategory liveCategory, int page, int pageSize) async {
-    var result = await HttpClient.instance.getJson(
+    var result = await MyHttpClient.instance.getJson(
       "https://live.kuaishou.com/live_api/category/data",
       queryParameters: {"type": liveCategory.id, "page": page, "size": pageSize},
       header: headers,
@@ -142,7 +141,7 @@ class KuaishowSite implements LiveSite {
     var api = category.areaId!.length < 7
         ? "https://live.kuaishou.com/live_api/gameboard/list"
         : "https://live.kuaishou.com/live_api/non-gameboard/list";
-    var result = await HttpClient.instance.getJson(
+    var result = await MyHttpClient.instance.getJson(
       api,
       queryParameters: {"filterType": 0, "pageSize": 20, "gameId": category.areaId, "page": page},
       header: headers,
@@ -192,7 +191,7 @@ class KuaishowSite implements LiveSite {
 
   @override
   Future<LiveCategoryResult> getRecommendRooms({int page = 1, required String nick}) async {
-    var resultText = await HttpClient.instance.getJson("https://live.kuaishou.com/live_api/home/list", header: headers);
+    var resultText = await MyHttpClient.instance.getJson("https://live.kuaishou.com/live_api/home/list", header: headers);
 
     var result = resultText['data']['list'] ?? [];
     var items = <LiveRoom>[];
@@ -225,7 +224,7 @@ class KuaishowSite implements LiveSite {
   }
 
   Future registerDid() async {
-    var res = await HttpClient.instance.postJson(
+    var res = await MyHttpClient.instance.postJson(
       'https://log-sdk.ksapisrv.com/rest/wd/common/log/collect/misc2?v=3.9.49&kpn=KS_GAME_LIVE_PC',
       header: headers,
       data: misc2dic(cookieObj['did']!),
@@ -290,19 +289,29 @@ class KuaishowSite implements LiveSite {
   }
 
   Future getCookie(String url) async {
-    final dio = Dio();
+    // 使用共享的 HttpClient 实例，配置 CookieJar 拦截器
     final cookieJar = CookieJar();
-    dio.interceptors.add(CookieManager(cookieJar));
-    await dio.get(url);
-    List<Cookie> cookies = await cookieJar.loadForRequest(Uri.parse(url));
-    cookie = '';
-    for (var i = 0; i < cookies.length; i++) {
-      if (i != cookies.length - 1) {
-        cookie += "${cookies[i].name}=${cookies[i].value};";
-      } else {
-        cookie += "${cookies[i].name}=${cookies[i].value}";
+    final tempDio = MyHttpClient.instance.dio;
+
+    // 临时添加 Cookie 拦截器
+    final cookieInterceptor = CookieManager(cookieJar);
+    tempDio.interceptors.add(cookieInterceptor);
+
+    try {
+      await tempDio.get(url);
+      List<Cookie> cookies = await cookieJar.loadForRequest(Uri.parse(url));
+      cookie = '';
+      for (var i = 0; i < cookies.length; i++) {
+        if (i != cookies.length - 1) {
+          cookie += "${cookies[i].name}=${cookies[i].value};";
+        } else {
+          cookie += "${cookies[i].name}=${cookies[i].value}";
+        }
+        cookieObj[cookies[i].name] = cookies[i].value;
       }
-      cookieObj[cookies[i].name] = cookies[i].value;
+    } finally {
+      // 移除临时添加的拦截器
+      tempDio.interceptors.remove(cookieInterceptor);
     }
   }
 
@@ -310,7 +319,7 @@ class KuaishowSite implements LiveSite {
     var variables = {'liveStreamId': liveRoomId};
     var query =
         r'query WebSocketInfoQuery($liveStreamId: String) {\n  webSocketInfo(liveStreamId: $liveStreamId) {\n    token\n    webSocketUrls\n    __typename\n  }\n}\n';
-    var res = await HttpClient.instance.postJson(
+    var res = await MyHttpClient.instance.postJson(
       'https://live.kuaishou.com/live_graphql',
       header: headers,
       data: {"operationName": 'WebSocketInfoQuery', "variables": variables, "query": query},
@@ -335,7 +344,7 @@ class KuaishowSite implements LiveSite {
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9';
     await getCookie(url);
     await registerDid();
-    var resultText = await HttpClient.instance.getText(url, queryParameters: {}, header: mHeaders);
+    var resultText = await MyHttpClient.instance.getText(url, queryParameters: {}, header: mHeaders);
 
     try {
       var text = RegExp(r"window\.__INITIAL_STATE__=(.*?);", multiLine: false).firstMatch(resultText)?.group(1);

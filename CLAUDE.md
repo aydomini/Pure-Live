@@ -87,7 +87,50 @@ open macos/Runner.xcworkspace
 
 **构建结果对比：**
 - Debug 版本：~204MB（包含调试符号）
-- Release 版本：~127MB（优化后，推荐使用）
+- Release 版本：~129MB（优化后，推荐使用）
+
+### macOS DMG 打包流程
+
+#### 一键构建（推荐）
+
+```bash
+bash scripts/build_and_release.sh
+```
+
+自动完成：清理 → 获取依赖 → 构建 → 打包 → 验证
+
+#### 分步执行
+
+```bash
+# 1. 构建
+flutter clean
+flutter pub get
+flutter build macos --release
+
+# 2. 打包
+bash scripts/create_dmg_native.sh
+
+# 3. 输出
+# build/macos/PureLive-macOS-{VERSION}.dmg (~59MB)
+```
+
+#### 发布 Release
+
+```bash
+# 使用 GitHub CLI
+gh release create v2.0.0 \
+  build/macos/PureLive-macOS-2.0.0.dmg \
+  --title "Pure Live v2.0.0"
+
+# Release 说明必须包含：
+# - 右键打开应用的步骤（绕过 Gatekeeper）
+# - 未经 Apple 公证的说明
+```
+
+#### 关键配置（已完成）
+
+- **显示名称**：`macos/Runner/Info.plist` → `CFBundleDisplayName = Pure Live`
+- **禁用签名**：`macos/Runner/Configs/Release.xcconfig` → `CODE_SIGNING_REQUIRED=NO`
 
 ### 代码生成和工具
 

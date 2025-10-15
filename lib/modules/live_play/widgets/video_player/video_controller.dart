@@ -172,6 +172,26 @@ class VideoController with ChangeNotifier {
     danmakuFontSize.value = settings.danmakuFontSize.value;
     danmakuFontBorder.value = settings.danmakuFontBorder.value;
     danmakuOpacity.value = settings.danmakuOpacity.value;
+
+    // macOS/Windows：初始化时重置全屏状态为 false，因为系统可能保持全屏但播放器是新创建的
+    if (Platform.isMacOS || Platform.isWindows) {
+      isFullscreen.value = false;
+      print('🔄🔄🔄 初始化VideoController，重置isFullscreen为false');
+      log('🔄 初始化VideoController，重置isFullscreen为false', name: 'fullscreen_state');
+
+      // 监听 isFullscreen 变化，实时保存状态
+      isFullscreen.listen((value) {
+        if (Platform.isMacOS || Platform.isWindows) {
+          settings.lastExitWasFullscreen.value = value;
+          print('💾💾💾 实时保存全屏状态: $value');
+          log('💾 实时保存全屏状态: $value', name: 'fullscreen_state');
+          if (value) {
+            SmartDialog.showToast('✅ 已进入全屏，将记住此状态');
+          }
+        }
+      });
+    }
+
     initPagesConfig();
   }
 
@@ -222,6 +242,11 @@ class VideoController with ChangeNotifier {
               )
             : playerCompatMode
             ? VideoControllerConfiguration(vo: 'mediacodec_embed', hwdec: 'mediacodec')
+            : Platform.isMacOS
+            ? VideoControllerConfiguration(
+                // macOS 使用软件渲染，避免 OpenGL/Metal 库加载问题
+                enableHardwareAcceleration: false,
+              )
             : VideoControllerConfiguration(
                 enableHardwareAcceleration: enableCodec,
                 androidAttachSurfaceAfterVideoParameters: false,
@@ -288,8 +313,31 @@ class VideoController with ChangeNotifier {
       });
 
       mediaPlayerControllerInitialized.listen((value) {
-        if (fullScreenByDefault && datasource.isNotEmpty && value) {
-          Timer(const Duration(milliseconds: 500), () => toggleFullScreen());
+        // 桌面平台（macOS/Windows）：检查上次退出时的全屏状态，自动恢复全屏
+        // 移动平台（Android/iOS）：仍使用 fullScreenByDefault 设置
+        bool shouldEnterFullscreen = false;
+        if (Platform.isMacOS || Platform.isWindows) {
+          shouldEnterFullscreen = settings.lastExitWasFullscreen.value;
+          print('🔍🔍🔍 检查全屏状态 - lastExitWasFullscreen: $shouldEnterFullscreen, currentFullscreen: ${isFullscreen.value}');
+          log('🔍 检查全屏状态 - lastExitWasFullscreen: $shouldEnterFullscreen, currentFullscreen: ${isFullscreen.value}',
+              name: 'fullscreen_state');
+        } else {
+          shouldEnterFullscreen = fullScreenByDefault;
+        }
+
+        if (shouldEnterFullscreen && datasource.isNotEmpty && value) {
+          print('✅✅✅ 准备恢复全屏模式');
+          log('✅ 准备恢复全屏模式', name: 'fullscreen_state');
+          SmartDialog.showToast('🎬 正在恢复全屏模式...');
+          Timer(const Duration(milliseconds: 500), () {
+            print('🎬🎬🎬 执行 toggleFullScreen()');
+            log('🎬 执行 toggleFullScreen()', name: 'fullscreen_state');
+            toggleFullScreen();
+          });
+        } else {
+          print('❌❌❌ 不恢复全屏 - shouldEnter: $shouldEnterFullscreen, datasource: ${datasource.isNotEmpty}, initialized: $value');
+          log('❌ 不恢复全屏 - shouldEnter: $shouldEnterFullscreen, datasource: ${datasource.isNotEmpty}, initialized: $value',
+              name: 'fullscreen_state');
         }
       });
       if (Platform.isAndroid) {
@@ -521,12 +569,16 @@ class VideoController with ChangeNotifier {
         mobileController?.dispose();
       }
     } else {
-      if (isFullscreen.value) {
-        doExitFullScreen();
-      }
+      // macOS/Windows：返回时不退出全屏，保持系统全屏状态
+      // if (isFullscreen.value) {
+      //   doExitFullScreen();
+      // }
       player.dispose();
     }
-    isFullscreen.value = false;
+    // macOS/Windows 在返回时保持全屏状态，不重置 isFullscreen
+    if (Platform.isAndroid || Platform.isIOS) {
+      isFullscreen.value = false;
+    }
   }
 
   void setDataSource(String url) async {
@@ -713,9 +765,11 @@ class VideoController with ChangeNotifier {
 
   // volume & brightness
   Future<double?> volume() async {
-    if (Platform.isWindows) {
+    if (Platform.isWindows || Platform.isMacOS) {
+      // Windows 和 macOS 使用播放器音量
       return mediaPlayerController.player.state.volume / 100;
     }
+    // Android 和 iOS 使用系统音量
     return await FlutterVolumeController.getVolume();
   }
 
@@ -724,9 +778,15 @@ class VideoController with ChangeNotifier {
   }
 
   void setVolume(double value) async {
-    if (Platform.isWindows) {
-      mediaPlayerController.player.setVolume(value * 100);
+    if (Platform.isWindows || Platform.isMacOS) {
+      // Windows 和 macOS 使用播放器自己的音量控制
+      try {
+        mediaPlayerController.player.setVolume(value * 100);
+      } catch (e) {
+        log('设置音量失败: $e', name: 'video_controller');
+      }
     } else {
+      // Android 和 iOS 使用系统音量控制
       await FlutterVolumeController.setVolume(value);
     }
     settings.volume.value = value;

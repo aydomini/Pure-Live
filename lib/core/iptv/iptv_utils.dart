@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:developer';
-import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:pure_live/core/iptv/src/m3u_item.dart';
@@ -26,20 +25,19 @@ class IptvUtils {
   }
 
   static Future loadNetworkM3u8() async {
-    Dio dio = Dio(
-      BaseOptions(
-        connectTimeout: const Duration(seconds: 10),
-        //响应时间为3秒
-        receiveTimeout: const Duration(seconds: 10),
-      ),
-    );
+    // 禁用自动下载 GitHub 推荐源
+    // 如需恢复，取消注释下面的代码
+    /*
     try {
       var dir = await getApplicationCacheDirectory();
       final m3ufile = File("${dir.path}${Platform.pathSeparator}hot.m3u");
-      await dio.download('https://raw.githubusercontent.com/YanG-1989/m3u/master/Gather.m3u', m3ufile.path);
+      // 使用共享的 MyHttpClient 实例进行下载
+      await MyHttpClient.instance.dio.download('https://raw.githubusercontent.com/YanG-1989/m3u/master/Gather.m3u', m3ufile.path);
     } catch (e) {
       log(e.toString());
     }
+    */
+    log('自动加载 GitHub 推荐源已禁用', name: 'IptvUtils');
   }
 
   static Future<String> loadJsonFromAssets(String assetsPath) async {
@@ -60,17 +58,14 @@ class IptvUtils {
   }
 
   static Future<List<M3uItem>> readRecommandsItems() async {
+    // 禁用自动加载 GitHub 推荐源，返回空列表
+    // 如需恢复，取消注释下面的代码
+    /*
     List<M3uItem> list = [];
     try {
-      Dio dio = Dio(
-        BaseOptions(
-          connectTimeout: const Duration(seconds: 30),
-          //响应时间为3秒
-          receiveTimeout: const Duration(seconds: 30),
-        ),
-      );
       var m3u8Url = 'https://hub.gitmirror.com/https://github.com/YanG-1989/m3u/blob/main/Gather.m3u';
-      Response response = await dio.get(m3u8Url);
+      // 使用共享的 MyHttpClient 实例进行网络请求
+      var response = await MyHttpClient.instance.dio.get(m3u8Url);
       final m3uList = M3uList.load(response.data);
       for (M3uItem item in m3uList.items) {
         list.add(item);
@@ -87,6 +82,8 @@ class IptvUtils {
       }
     }
     return list;
+    */
+    return [];
   }
 
   static Future<bool> recover(File file) async {

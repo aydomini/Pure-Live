@@ -39,7 +39,7 @@ class DouyuSite implements LiveSite {
   @override
   Future<List<LiveCategory>> getCategores(int page, int pageSize) async {
     List<LiveCategory> categories = [];
-    var result = await HttpClient.instance.getJson("https://m.douyu.com/api/cate/list");
+    var result = await MyHttpClient.instance.getJson("https://m.douyu.com/api/cate/list");
     var subCateList = result["data"]["cate2Info"] as List;
     for (var item in result["data"]["cate1Info"]) {
       var cate1Id = item["cate1Id"];
@@ -66,7 +66,7 @@ class DouyuSite implements LiveSite {
   }
 
   Future<List<LiveArea>> getSubCategories(LiveCategory liveCategory) async {
-    var result = await HttpClient.instance.getJson(
+    var result = await MyHttpClient.instance.getJson(
       "https://www.douyu.com/japi/weblist/apinc/getC2List",
       queryParameters: {"shortName": liveCategory.name, "customClassId": liveCategory.id, "offset": 0, "limit": 200},
     );
@@ -90,7 +90,7 @@ class DouyuSite implements LiveSite {
 
   @override
   Future<LiveCategoryResult> getCategoryRooms(LiveArea category, {int page = 1}) async {
-    var result = await HttpClient.instance.getJson(
+    var result = await MyHttpClient.instance.getJson(
       "https://www.douyu.com/gapi/rkc/directory/mixList/2_${category.areaId}/$page",
       queryParameters: {},
     );
@@ -123,7 +123,7 @@ class DouyuSite implements LiveSite {
     var data = detail.data.toString();
     data += "&cdn=&rate=-1&ver=Douyu_223061205&iar=1&ive=1&hevc=0&fa=0";
     List<LivePlayQuality> qualities = [];
-    var result = await HttpClient.instance.postJson(
+    var result = await MyHttpClient.instance.postJson(
       "https://www.douyu.com/lapi/live/getH5Play/${detail.roomId}",
       data: data,
       formUrlEncoded: true,
@@ -165,7 +165,7 @@ class DouyuSite implements LiveSite {
 
   Future<String> getPlayUrl(String roomId, String args, int rate, String cdn) async {
     args += "&cdn=$cdn&rate=$rate";
-    var result = await HttpClient.instance.postJson(
+    var result = await MyHttpClient.instance.postJson(
       "https://www.douyu.com/lapi/live/getH5Play/$roomId",
       data: args,
       header: {
@@ -181,7 +181,7 @@ class DouyuSite implements LiveSite {
 
   @override
   Future<LiveCategoryResult> getRecommendRooms({int page = 1, required String nick}) async {
-    var result = await HttpClient.instance.getJson(
+    var result = await MyHttpClient.instance.getJson(
       "https://www.douyu.com/japi/weblist/apinc/allpage/6/$page",
       queryParameters: {},
     );
@@ -212,7 +212,7 @@ class DouyuSite implements LiveSite {
   @override
   Future<LiveRoom> getRoomDetail({required String platform, required String roomId}) async {
     try {
-      var result = await HttpClient.instance.getJson(
+      var result = await MyHttpClient.instance.getJson(
         "https://www.douyu.com/betard/$roomId",
         queryParameters: {},
         header: {
@@ -228,7 +228,7 @@ class DouyuSite implements LiveSite {
         roomInfo = result["room"];
       }
 
-      var jsEncResult = await HttpClient.instance.getText(
+      var jsEncResult = await MyHttpClient.instance.getText(
         "https://www.douyu.com/swf_api/homeH5Enc?rids=$roomId",
         queryParameters: {},
         header: {
@@ -269,7 +269,7 @@ class DouyuSite implements LiveSite {
   @override
   Future<LiveSearchRoomResult> searchRooms(String keyword, {int page = 1}) async {
     var did = generateRandomString(32);
-    var result = await HttpClient.instance.getJson(
+    var result = await MyHttpClient.instance.getJson(
       "https://www.douyu.com/japi/search/api/searchShow",
       queryParameters: {"kw": keyword, "page": page, "pageSize": 20},
       header: {
@@ -319,7 +319,7 @@ class DouyuSite implements LiveSite {
   @override
   Future<LiveSearchAnchorResult> searchAnchors(String keyword, {int page = 1}) async {
     var did = generateRandomString(32);
-    var result = await HttpClient.instance.getJson(
+    var result = await MyHttpClient.instance.getJson(
       "https://www.douyu.com/japi/search/api/searchUser",
       queryParameters: {"kw": keyword, "page": page, "pageSize": 20, "filterType": 1},
       header: {
@@ -362,7 +362,7 @@ class DouyuSite implements LiveSite {
         "";
     html = html.replaceAll(RegExp(r"eval.*?;}"), "strc;}");
 
-    var result = await HttpClient.instance.postJson(
+    var result = await MyHttpClient.instance.postJson(
       "http://alive.nsapps.cn/api/AllLive/DouyuSign",
       data: {"html": html, "rid": rid},
     );

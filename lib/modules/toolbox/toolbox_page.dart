@@ -10,7 +10,7 @@ class ToolBoxPage extends GetView<ToolBoxController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("链接解析"),
+        title: const Text("工具箱"),
       ),
       body: ListView(
         padding: const EdgeInsets.all(12.0),
@@ -57,7 +57,7 @@ class ToolBoxPage extends GetView<ToolBoxController> {
             child: ExpansionTile(
               title: const Text("获取直链"),
               childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-              initiallyExpanded: true,
+              initiallyExpanded: false,
               children: [
                 TextField(
                   minLines: 3,
@@ -84,6 +84,85 @@ class ToolBoxPage extends GetView<ToolBoxController> {
                     },
                     icon: const Icon(Remix.link),
                     label: const Text("获取直链"),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          buildCard(
+            context: context,
+            child: ExpansionTile(
+              title: const Text("导入 M3U 直播源"),
+              subtitle: const Text("支持本地文件和网络链接"),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              initiallyExpanded: false,
+              children: [
+                // 网络导入部分
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: 8.0),
+                    child: Text(
+                      "网络导入",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+                TextField(
+                  controller: controller.m3uUrlController,
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    hintText: "输入 M3U 文件的 URL（如：https://example.com/list.m3u）",
+                    contentPadding: const EdgeInsets.all(12.0),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey.withValues(alpha: .2),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12.0),
+                TextField(
+                  controller: controller.m3uNameController,
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    hintText: "输入自定义名称（如：我的直播源）",
+                    contentPadding: const EdgeInsets.all(12.0),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey.withValues(alpha: .2),
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(top: 12.0),
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: controller.importM3uFromUrl,
+                    icon: const Icon(Remix.download_cloud_line),
+                    label: const Text("从网络导入"),
+                  ),
+                ),
+                const Divider(height: 24.0),
+                // 本地导入部分
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: 8.0),
+                    child: Text(
+                      "本地导入",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 4.0),
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: controller.importM3uFromLocal,
+                    icon: const Icon(Remix.folder_open_line),
+                    label: const Text("选择本地 M3U 文件"),
                   ),
                 ),
               ],

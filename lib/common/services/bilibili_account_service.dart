@@ -33,7 +33,7 @@ class BiliBiliAccountService extends GetxController {
     }
     Timer(const Duration(seconds: 1), () async {
       try {
-        var result = await HttpClient.instance.getJson(
+        var result = await MyHttpClient.instance.getJson(
           "https://api.bilibili.com/x/member/web/account",
           header: {
             "Cookie": cookie,

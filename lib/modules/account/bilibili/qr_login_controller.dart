@@ -36,7 +36,7 @@ class BiliBiliQRLoginController extends GetxController {
     try {
       qrStatus.value = QRStatus.loading;
 
-      var result = await HttpClient.instance.getJson(
+      var result = await MyHttpClient.instance.getJson(
         "https://passport.bilibili.com/x/passport-login/web/qrcode/generate",
       );
       if (result["code"] != 0) {
@@ -63,7 +63,7 @@ class BiliBiliQRLoginController extends GetxController {
 
   void pollQRStatus() async {
     try {
-      var response = await HttpClient.instance.get(
+      var response = await MyHttpClient.instance.get(
         "https://passport.bilibili.com/x/passport-login/web/qrcode/poll",
         queryParameters: {
           "qrcode_key": qrcodeKey,

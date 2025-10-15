@@ -61,6 +61,10 @@ class SettingsService extends GetxController {
       PrefUtil.setBool('enableFullScreenDefault', value);
     });
 
+    lastExitWasFullscreen.listen((value) {
+      PrefUtil.setBool('lastExitWasFullscreen', value);
+    });
+
     shieldList.listen((value) {
       PrefUtil.setStringList('shieldList', value);
     });
@@ -292,6 +296,9 @@ class SettingsService extends GetxController {
   final danmakuOpacity = (PrefUtil.getDouble('danmakuOpacity') ?? 1.0).obs;
 
   final enableFullScreenDefault = (PrefUtil.getBool('enableFullScreenDefault') ?? false).obs;
+
+  // 记住上次退出直播间时的全屏状态（macOS/Windows桌面平台专用）
+  final lastExitWasFullscreen = (PrefUtil.getBool('lastExitWasFullscreen') ?? false).obs;
 
   final videoPlayerIndex = (PrefUtil.getInt('videoPlayerIndex') ?? 0).obs;
 

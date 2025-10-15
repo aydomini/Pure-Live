@@ -94,7 +94,15 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
             controller.setVolume(volume);
             updateVolumn(volume);
           },
-          const SingleActivator(LogicalKeyboardKey.escape): () => controller.toggleFullScreen(),
+          const SingleActivator(LogicalKeyboardKey.escape): () {
+            // ESC 键行为：优先退出全屏，而不是切换全屏
+            if (controller.isWindowFullscreen.value) {
+              controller.toggleWindowFullScreen();
+            } else if (controller.isFullscreen.value) {
+              controller.toggleFullScreen();
+            }
+            // 如果不在全屏状态，ESC 键不执行任何操作
+          },
         },
         child: Focus(
           autofocus: true,
@@ -243,7 +251,11 @@ class TopActionBar extends StatelessWidget {
                   ),
                 ),
               ),
-              if (controller.fullscreenUI) ...[const DatetimeInfo(), BatteryInfo(controller: controller)],
+              if (controller.fullscreenUI) ...[
+                const DatetimeInfo(),
+                // 电量显示仅在移动平台显示（Android/iOS）
+                if (Platform.isAndroid || Platform.isIOS) BatteryInfo(controller: controller),
+              ],
               if (!controller.fullscreenUI && controller.supportPip) PIPButton(controller: controller),
             ],
           ),
@@ -346,8 +358,11 @@ class BackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () =>
-          controller.isWindowFullscreen.value ? controller.toggleWindowFullScreen() : controller.toggleFullScreen(),
+      onTap: () {
+        // 直接退出播放页面，无论是否在全屏状态
+        // Flutter 会自动处理全屏状态的恢复
+        Navigator.of(Get.context!).pop();
+      },
       child: Container(
         alignment: Alignment.center,
         padding: const EdgeInsets.all(12),
@@ -961,7 +976,10 @@ class DanmakuSetting extends StatelessWidget {
                             }
                           },
                           selectedColor: Theme.of(context).colorScheme.primary,
-                          backgroundColor: Colors.white.withOpacity(0.2),
+                          // 未选中状态：浅色半透明背景，在深色设置面板上保持对比度
+                          backgroundColor: Colors.white.withValues(alpha: 0.15),
+                          // 设置边框以增强可见性
+                          side: BorderSide(color: Colors.white.withValues(alpha: 0.3), width: 1),
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         ),
                       ),
