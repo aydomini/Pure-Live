@@ -36,7 +36,6 @@ dependencies:
   visibility_detector: ^0.4.0+2
   floating: ^6.0.0
   # database
-  supabase_flutter: ^2.10.0
   email_validator: ^3.0.0
   font_awesome_flutter: ^10.6.0
   # video player mobile

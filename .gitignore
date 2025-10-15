@@ -63,3 +63,6 @@ ios/Podfile.lock
 # Flutter DevTools 配置
 devtools_options.yaml
 distribute_options.yaml
+
+# Claude Code 开发指南（本地使用）
+CLAUDE.md

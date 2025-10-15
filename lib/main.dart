@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:pure_live/common/index.dart';
 import 'package:pure_live/plugins/global.dart';
 import 'package:pure_live/routes/app_navigation.dart';
-import 'package:pure_live/plugins/file_recover_utils.dart';
 import 'package:pure_live/common/services/bilibili_account_service.dart';
 
 const kWindowsScheme = 'purelive://signin';
@@ -21,8 +20,6 @@ void main(List<String> args) async {
     await windowManager.ensureInitialized();
     await WindowUtil.init(width: 1280, height: 720);
   }
-  // 先初始化supdatabase
-  await SupaBaseManager.getInstance().initial();
   // 初始化服务
   initService();
   initRefresh();
@@ -31,7 +28,6 @@ void main(List<String> args) async {
 
 void initService() {
   Get.put(SettingsService());
-  Get.put(AuthController());
   Get.put(FavoriteController());
   Get.put(BiliBiliAccountService());
   Get.put(PopularController());

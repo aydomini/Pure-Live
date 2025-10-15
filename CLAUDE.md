@@ -167,7 +167,6 @@ lib/
 │   ├── account/        # 账户管理
 │   ├── area_rooms/     # 分区房间列表
 │   ├── areas/          # 分区管理
-│   ├── auth/           # 认证（登录注册）
 │   ├── backup/         # 备份还原
 │   ├── favorite/       # 收藏管理
 │   ├── history/        # 历史记录
@@ -194,9 +193,10 @@ lib/
 - **全局服务注入**：在`main.dart`的`initService()`中注入全局服务
   ```dart
   Get.put(SettingsService());
-  Get.put(AuthController());
   Get.put(FavoriteController());
   Get.put(BiliBiliAccountService());
+  Get.put(PopularController());
+  Get.put(AreasController());
   ```
 
 - **页面级控制器**：每个功能模块通常包含：
@@ -255,8 +255,7 @@ lib/
 ### 持久化存储
 
 - **SharedPreferences**：通过`PrefUtil`封装，存储用户设置
-- **Supabase**：用于用户认证和云端数据同步
-- **WebDAV**：支持WebDAV协议进行配置同步
+- **WebDAV**：支持WebDAV协议进行配置同步（云端备份）
 
 ## 开发注意事项
 
@@ -308,7 +307,7 @@ lib/
 
 - B站高清直播需要Cookie，通过第三方OAuth获取
 - Cookie存储在`BiliBiliAccountService`中
-- 支持通过Supabase进行用户账户管理（需要配置白名单）
+- 配置同步支持 WebDAV 协议（见备份页面）
 
 ### 签名和加密
 
@@ -351,7 +350,6 @@ static const List<Map<String, dynamic>> danmakuAreaModes = [
 **关键依赖：**
 - `get` - 状态管理和路由
 - `media_kit` - 视频播放器
-- `supabase_flutter` - 后端服务和认证
 - `flutter_smart_dialog` - 弹窗和 Toast
 - `cached_network_image` - 图片缓存
 - `web_socket_channel` - WebSocket 连接（弹幕）
@@ -501,6 +499,6 @@ pure_live/
 - **网络**：dio + web_socket_channel
 - **视频播放**：media_kit
 - **本地存储**：shared_preferences
-- **云端服务**：supabase_flutter
+- **云端同步**：WebDAV（webdav_client）
 - **国际化**：intl + flutter_localizations
 - **代码生成**：build_runner + json_serializable + protoc_builder

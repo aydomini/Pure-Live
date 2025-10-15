@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:pure_live/common/index.dart';
 import 'package:pure_live/modules/backup/scan_page.dart';
 import 'package:pure_live/plugins/file_recover_utils.dart';
-import 'package:pure_live/modules/auth/utils/constants.dart';
 
 class BackupPage extends StatefulWidget {
   const BackupPage({super.key});
@@ -123,7 +122,7 @@ class _BackupPageState extends State<BackupPage> {
                   ),
                   autofocus: true,
                 ),
-                spacer(12.0),
+                const SizedBox(height: 12.0),
                 TextField(
                   controller: textEditingController,
                   decoration: const InputDecoration(
