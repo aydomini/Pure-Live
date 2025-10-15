@@ -37,11 +37,27 @@ flutter devices
 flutter build ios
 ```
 
-**macOS 构建（重要）：**
+**macOS 构建（重要 - 必读）：**
 
-由于代码签名问题，macOS 构建需要使用特殊方法：
+⚠️ **关键要点：必须使用 Flutter 命令构建，不能用 Xcode 直接构建发布版本！**
 
-**方法1：使用 Xcode 直接构建（推荐）**
+**问题背景：**
+- macOS 应用包含大量 Frameworks（如 Ass.framework、Avformat.framework 等）
+- macOS 要求所有 Frameworks 必须有有效的代码签名才能加载
+- 直接用 Xcode 构建的应用会因 Frameworks 签名无效而无法启动
+- 错误提示：`code signature in 'XXX.framework' not valid for use in process`
+
+**正确的构建流程：**
+
+**方法1：一键构建脚本（强烈推荐）**
+```bash
+# 自动完成：清理 → 获取依赖 → 构建 → 打包 DMG（含签名）
+bash scripts/build_and_release.sh
+
+# 输出：build/macos/PureLive-macOS-{VERSION}.dmg (~59MB)
+```
+
+**方法2：分步执行**
 ```bash
 # 1. 清理缓存
 flutter clean
@@ -51,45 +67,39 @@ export PUB_HOSTED_URL=https://pub.flutter-io.cn
 export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
 flutter pub get
 
-# 3. 使用 Xcode 构建 Release 版本（禁用代码签名）
-cd macos
-xcodebuild -workspace Runner.xcworkspace \
-  -scheme Runner \
-  -configuration Release \
-  build \
-  CODE_SIGN_IDENTITY="-" \
-  CODE_SIGNING_REQUIRED=NO \
-  CODE_SIGNING_ALLOWED=NO
-```
-
-构建完成后，应用位于：
-- `~/Library/Developer/Xcode/DerivedData/Runner-*/Build/Products/Release/pure_live.app`
-
-**方法2：使用 Flutter 命令（可能失败）**
-```bash
-# 注意：可能因签名问题失败
-export PUB_HOSTED_URL=https://pub.flutter-io.cn
-export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
+# 3. 使用 Flutter 构建 Release 版本（必须！）
 flutter build macos --release
+
+# 4. 打包 DMG（自动对所有 Frameworks 签名）
+bash scripts/create_dmg_native.sh
 ```
 
-**方法3：在 Xcode IDE 中构建（最稳定）**
+构建完成后：
+- 应用位于：`build/macos/Build/Products/Release/Pure-Live.app`
+- DMG 位于：`build/macos/PureLive-macOS-{VERSION}.dmg`
+
+**方法3：Xcode IDE（仅用于开发调试，不用于发布）**
 ```bash
 open macos/Runner.xcworkspace
 ```
 然后在 Xcode 中点击运行按钮（▶️）或 Product → Build (⌘B)
 
+⚠️ **注意：Xcode 直接构建的应用可能无法打开，发布版本必须用方法1或方法2！**
+
 **关于代码签名：**
-- 个人免费 Apple ID 签名后，`flutter build` 会失败，需要使用方法1或方法3
-- 如需分发给他人，需加入 Apple Developer Program（¥688/年）
+- 打包脚本会自动对所有 Frameworks 和应用进行 adhoc 签名
 - Adhoc 签名的应用只能在本机运行，双击可能提示安全警告
 - 绕过方法：右键应用 → 选择"打开" → 再次点击"打开"
+- 如需正式分发，需加入 Apple Developer Program（¥688/年）并进行公证
 
 **构建结果对比：**
 - Debug 版本：~204MB（包含调试符号）
 - Release 版本：~129MB（优化后，推荐使用）
+- DMG 压缩后：~59MB
 
 ### macOS DMG 打包流程
+
+⚠️ **重要：打包脚本会自动对所有 Frameworks 进行签名，这是应用能够正常启动的关键！**
 
 #### 一键构建（推荐）
 
@@ -107,11 +117,47 @@ flutter clean
 flutter pub get
 flutter build macos --release
 
-# 2. 打包
+# 2. 打包（自动签名）
 bash scripts/create_dmg_native.sh
 
 # 3. 输出
 # build/macos/PureLive-macOS-{VERSION}.dmg (~59MB)
+```
+
+**打包脚本自动执行的签名步骤：**
+```bash
+# scripts/create_dmg_native.sh 会执行：
+
+# 1. 清除扩展属性
+xattr -cr "$APP_PATH"
+
+# 2. 对所有 Frameworks 进行 adhoc 签名
+find Frameworks -name "*.framework" | while read framework; do
+  codesign --force --deep --sign - "$framework"
+done
+
+# 3. 对整个应用进行 adhoc 签名
+codesign --force --deep --sign - Pure-Live.app
+
+# 4. 创建压缩 DMG
+hdiutil create -format UDZO Pure-Live.dmg
+```
+
+#### 验证 DMG 和应用
+
+```bash
+# 1. 验证 DMG 完整性
+hdiutil verify build/macos/PureLive-macOS-{VERSION}.dmg
+
+# 2. 挂载 DMG 并测试应用
+hdiutil attach build/macos/PureLive-macOS-{VERSION}.dmg
+open /Volumes/Pure\ Live/Pure-Live.app
+
+# 3. 检查进程（验证应用正在运行）
+ps aux | grep -i pure-live
+
+# 4. 卸载 DMG
+hdiutil detach /Volumes/Pure\ Live
 ```
 
 #### 发布 Release
@@ -120,17 +166,46 @@ bash scripts/create_dmg_native.sh
 # 使用 GitHub CLI
 gh release create v2.0.0 \
   build/macos/PureLive-macOS-2.0.0.dmg \
-  --title "Pure Live v2.0.0"
+  --title "Pure Live v2.0.0" \
+  --notes "安装说明：右键打开应用（绕过 Gatekeeper）"
 
 # Release 说明必须包含：
 # - 右键打开应用的步骤（绕过 Gatekeeper）
 # - 未经 Apple 公证的说明
+# - Frameworks 签名问题已修复
 ```
 
-#### 关键配置（已完成）
+#### 关键配置
 
 - **显示名称**：`macos/Runner/Info.plist` → `CFBundleDisplayName = Pure Live`
 - **禁用签名**：`macos/Runner/Configs/Release.xcconfig` → `CODE_SIGNING_REQUIRED=NO`
+- **Frameworks 签名**：`scripts/create_dmg_native.sh` → 自动对所有 Frameworks 进行 adhoc 签名
+
+#### 常见问题排查
+
+**问题1：应用无法打开，提示"因为出现问题而无法打开"**
+```bash
+# 检查 Frameworks 签名
+codesign -dvv Pure-Live.app/Contents/Frameworks/Ass.framework
+
+# 应该显示：Signature=adhoc
+# 如果显示 "code object is not signed at all"，说明签名失败
+```
+
+**问题2：直接运行可执行文件报错**
+```bash
+# 直接运行查看详细错误
+./Pure-Live.app/Contents/MacOS/Pure-Live
+
+# 如果提示：Trying to load an unsigned library
+# 说明需要重新打包并签名
+```
+
+**解决方案：重新打包**
+```bash
+flutter build macos --release
+bash scripts/create_dmg_native.sh
+```
 
 ### 代码生成和工具
 
@@ -406,25 +481,36 @@ static const List<Map<String, dynamic>> danmakuAreaModes = [
 
 ### macOS 构建和运行问题
 
-**问题1：flutter build macos 失败，提示签名错误**
+**问题1：应用无法打开，提示"Pure-Live因为出现问题而无法打开"**
+```
+dyld: Library not loaded: @rpath/Ass.framework/Versions/A/Ass
+Reason: code signature in 'Ass.framework' not valid for use in process: Trying to load an unsigned library
+```
+**原因：**
+macOS 要求所有 Frameworks 必须有有效的代码签名才能加载。直接用 Xcode 构建或未使用打包脚本的应用会因为 Frameworks 未签名而无法启动。
+
+**解决方案：**
+必须使用 Flutter 构建并用打包脚本签名：
+```bash
+flutter clean
+flutter pub get
+flutter build macos --release
+bash scripts/create_dmg_native.sh
+```
+
+**问题2：flutter build macos 失败，提示签名错误**
 ```
 Error: resource fork, Finder information, or similar detritus not allowed
 Error: code signature not valid for use in process
 ```
 **解决方案：**
-使用 Xcode 直接构建：
+不要使用 `xcodebuild` 命令，直接使用 Flutter 命令：
 ```bash
-cd macos
-xcodebuild -workspace Runner.xcworkspace \
-  -scheme Runner \
-  -configuration Release \
-  build \
-  CODE_SIGN_IDENTITY="-" \
-  CODE_SIGNING_REQUIRED=NO \
-  CODE_SIGNING_ALLOWED=NO
+flutter build macos --release
 ```
+然后使用打包脚本创建 DMG（会自动处理签名）。
 
-**问题2：flutter pub get 超时**
+**问题3：flutter pub get 超时**
 **解决方案：**
 使用中国镜像：
 ```bash
@@ -433,7 +519,7 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
 flutter pub get
 ```
 
-**问题3：双击应用提示"无法打开"或"已损坏"**
+**问题4：双击应用提示"无法打开"或"已损坏"**
 **解决方案：**
 - 方法1：右键点击应用 → 选择"打开" → 再次点击"打开"
 - 方法2：在 Xcode 中直接运行（最可靠）

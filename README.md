@@ -181,33 +181,44 @@ lib/
 
 #### macOS 应用
 
+**⚠️ 重要提示：必须使用 Flutter 命令构建，不能直接用 Xcode！**
+
+由于 Frameworks 签名问题，必须按照以下步骤构建：
+
 **方法1：一键构建脚本（推荐）**
 ```bash
-# 自动完成：清理 → 依赖 → 构建 → 打包 DMG
+# 自动完成：清理 → 依赖 → 构建 → 打包 DMG（含签名）
 bash scripts/build_and_release.sh
+
+# 输出：build/macos/PureLive-macOS-{VERSION}.dmg
 ```
 
-**方法2：使用 Flutter 命令**
+**方法2：分步执行**
 ```bash
-# 设置中国镜像（可选，加速下载）
+# 1. 设置中国镜像（可选，加速下载）
 export PUB_HOSTED_URL=https://pub.flutter-io.cn
 export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
 
-# 获取依赖
+# 2. 清理和获取依赖
+flutter clean
 flutter pub get
 
-# 构建 Release 版本
+# 3. 构建 Release 版本（必须用 flutter 命令）
 flutter build macos --release
 
-# 应用位于：build/macos/Build/Products/Release/pure_live.app
+# 4. 打包 DMG（自动对 Frameworks 签名）
+bash scripts/create_dmg_native.sh
+
+# 应用位于：build/macos/Build/Products/Release/Pure-Live.app
+# DMG 位于：build/macos/PureLive-macOS-{VERSION}.dmg
 ```
 
-**方法3：使用 Xcode IDE（最稳定）**
+**⚠️ 不推荐：使用 Xcode IDE 构建**
 ```bash
-# 打开 Xcode 项目
+# 仅用于开发调试，不用于发布
 open macos/Runner.xcworkspace
 ```
-然后在 Xcode 中点击运行按钮（▶️）或 Product → Build (⌘B)
+注意：Xcode 直接构建的应用可能因签名问题无法打开，发布版本必须使用方法1或方法2。
 
 #### iOS 应用
 
@@ -221,11 +232,29 @@ open ios/Runner.xcworkspace
 
 ### DMG 打包（仅 macOS）
 
+**重要：打包脚本会自动对所有 Frameworks 进行签名**
+
 ```bash
 # 前提：已完成 flutter build macos --release
 bash scripts/create_dmg_native.sh
 
-# 输出：build/macos/PureLive-macOS-{VERSION}.dmg
+# 输出：build/macos/PureLive-macOS-{VERSION}.dmg (~59MB)
+
+# 脚本自动执行：
+# 1. 清除扩展属性
+# 2. 对所有 Frameworks 进行 adhoc 签名
+# 3. 对整个应用进行 adhoc 签名
+# 4. 创建压缩 DMG
+```
+
+**验证 DMG：**
+```bash
+# 验证完整性
+hdiutil verify build/macos/PureLive-macOS-{VERSION}.dmg
+
+# 测试应用能否打开
+hdiutil attach build/macos/PureLive-macOS-{VERSION}.dmg
+open /Volumes/Pure\ Live/Pure-Live.app
 ```
 
 </details>
@@ -322,19 +351,29 @@ bash scripts/create_dmg_native.sh
 ### 构建问题
 
 <details>
+<summary><b>Q: macOS 应用无法打开，提示 Frameworks 签名错误？</b></summary>
+
+**A**: 这是因为打包时未对 Frameworks 签名。必须使用项目提供的打包脚本：
+```bash
+# 正确的构建流程
+flutter clean
+flutter pub get
+flutter build macos --release
+bash scripts/create_dmg_native.sh
+
+# 脚本会自动对所有 Frameworks 进行 adhoc 签名
+# 不要直接用 Xcode 构建用于发布！
+```
+</details>
+
+<details>
 <summary><b>Q: macOS 构建失败，提示签名错误？</b></summary>
 
-**A**: 使用 Xcode 命令行构建，并禁用代码签名：
+**A**: 不要使用 `xcodebuild` 直接构建，使用 Flutter 命令：
 ```bash
-cd macos
-xcodebuild -workspace Runner.xcworkspace \
-  -scheme Runner \
-  -configuration Release \
-  build \
-  CODE_SIGN_IDENTITY="-" \
-  CODE_SIGNING_REQUIRED=NO \
-  CODE_SIGNING_ALLOWED=NO
+flutter build macos --release
 ```
+然后使用打包脚本创建 DMG（自动处理签名）。
 </details>
 
 <details>
@@ -408,5 +447,5 @@ flutter pub get
 ---
 
 <p align="center">
-Made with ❤️ by Flutter
+基于 <a href="https://flutter.dev">Flutter</a> 构建 | 遵循 <a href="LICENSE">GPL-v3</a> 开源协议
 </p>
