@@ -24,6 +24,20 @@ rm -f "$OUTPUT_DIR/${DMG_NAME}-${VERSION}.dmg"
 cp -R "$APP_PATH" "$TEMP_DIR/"
 ln -s /Applications "$TEMP_DIR/Applications"
 
+# 清除扩展属性并对所有 Frameworks 和应用进行 adhoc 签名
+echo "🔐 正在对应用进行签名..."
+xattr -cr "$TEMP_DIR/${APP_NAME}.app"
+
+# 签名所有 Frameworks
+find "$TEMP_DIR/${APP_NAME}.app/Contents/Frameworks" -name "*.framework" -type d -print0 | \
+  while IFS= read -r -d '' framework; do
+    codesign --force --deep --sign - "$framework" 2>/dev/null || true
+  done
+
+# 签名整个应用
+codesign --force --deep --sign - "$TEMP_DIR/${APP_NAME}.app" 2>/dev/null || true
+
+echo "📦 正在创建 DMG..."
 hdiutil create -volname "Pure Live" \
   -srcfolder "$TEMP_DIR" \
   -ov -format UDZO \
