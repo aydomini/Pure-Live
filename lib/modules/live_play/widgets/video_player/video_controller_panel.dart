@@ -965,7 +965,7 @@ class DanmakuSetting extends StatelessWidget {
                             style: TextStyle(
                               color: controller.settings.danmakuAreaMode.value == i
                                   ? Theme.of(context).colorScheme.onPrimary
-                                  : Colors.white,
+                                  : Theme.of(context).colorScheme.onSurface,
                               fontSize: 12,
                             ),
                           ),
@@ -976,10 +976,15 @@ class DanmakuSetting extends StatelessWidget {
                             }
                           },
                           selectedColor: Theme.of(context).colorScheme.primary,
-                          // 未选中状态：浅色半透明背景，在深色设置面板上保持对比度
-                          backgroundColor: Colors.white.withValues(alpha: 0.15),
-                          // 设置边框以增强可见性
-                          side: BorderSide(color: Colors.white.withValues(alpha: 0.3), width: 1),
+                          // 未选中状态：使用深色背景和明显边框，提高在深色面板上的可见性
+                          backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
+                          // 使用主题色边框，与选中状态形成视觉关联
+                          side: BorderSide(
+                            color: controller.settings.danmakuAreaMode.value == i
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.outline,
+                            width: 1.5,
+                          ),
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         ),
                       ),
