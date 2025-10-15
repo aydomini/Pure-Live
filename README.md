@@ -9,7 +9,7 @@
 <h4 align="center">A Third-party Live Stream Player for macOS and iOS</h4>
 <p align="center">
 	<img alt="Using GPL-v3" src="https://img.shields.io/badge/license-GPL--v3-blue">
-	<img alt="Version" src="https://img.shields.io/badge/version-2.0.0-brightgreen">
+	<img alt="Version" src="https://img.shields.io/badge/version-2.0.1-brightgreen">
 	<img alt="Platform" src="https://img.shields.io/badge/platform-macOS%20%7C%20iOS-lightgrey">
   <img alt="Flutter" src="https://img.shields.io/badge/Flutter-3.8.1+-blue">
   <h4 align="center">本软件仅供学习交流使用  请勿用于其他用途</h4>

@@ -31,17 +31,15 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m4(roomid, platform, nickname, title, livestatus) =>
       "房间号: ${roomid}\n平台: ${platform}\n昵称: ${nickname}\n标题: ${title}\n状态: ${livestatus}";
 
-  static String m5(error) => "发生意外错误：${error}";
+  static String m5(time) => "${time} 分钟";
 
-  static String m6(time) => "${time} 分钟";
-
-  static String m7(name) => "确定要取消关注${name}吗？";
+  static String m6(name) => "确定要取消关注${name}吗？";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("关于"),
     "app_legalese": MessageLookupByLibrary.simpleMessage(
-      "本项目是一个纯本地直播转码应用，登录使用第三方SupaBase服务，本人不收集用户信息，应用程序直接请求直播官方接口，所有操作生成的数据由用户本地保留，可选择性使用SupaBase同步数据。",
+      "本项目是一个纯本地直播应用，不收集用户信息，应用程序直接请求直播官方接口，所有操作生成的数据由用户本地保留，可选择性使用 WebDAV 同步数据。",
     ),
     "app_name": MessageLookupByLibrary.simpleMessage("纯粹直播"),
     "areas_title": MessageLookupByLibrary.simpleMessage("分区"),
@@ -205,36 +203,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "settings_title": MessageLookupByLibrary.simpleMessage("设置"),
     "settings_videofit_title": MessageLookupByLibrary.simpleMessage("比例设置"),
     "show_offline_rooms": MessageLookupByLibrary.simpleMessage("显示未直播的直播间"),
-    "supabase_back_sign_in": MessageLookupByLibrary.simpleMessage("返回登录"),
-    "supabase_enter_email": MessageLookupByLibrary.simpleMessage("请输入邮箱地址"),
-    "supabase_enter_password": MessageLookupByLibrary.simpleMessage("请输入密码"),
-    "supabase_enter_valid_email": MessageLookupByLibrary.simpleMessage(
-      "请输入有效的邮箱地址",
-    ),
-    "supabase_enter_valid_password": MessageLookupByLibrary.simpleMessage(
-      "请输入至少6个字符的密码",
-    ),
-    "supabase_forgot_password": MessageLookupByLibrary.simpleMessage("忘记密码?"),
-    "supabase_has_account": MessageLookupByLibrary.simpleMessage("已有帐户? 登录"),
-    "supabase_log_out": MessageLookupByLibrary.simpleMessage("退出登录"),
-    "supabase_mine": MessageLookupByLibrary.simpleMessage("我的"),
-    "supabase_mine_profiles": MessageLookupByLibrary.simpleMessage("上传用户配置文件"),
-    "supabase_mine_streams": MessageLookupByLibrary.simpleMessage("关注直播间以及主题等"),
-    "supabase_no_account": MessageLookupByLibrary.simpleMessage("没有账户? 注册"),
-    "supabase_reset_password": MessageLookupByLibrary.simpleMessage("重置邮箱密码"),
-    "supabase_sign_confirm": MessageLookupByLibrary.simpleMessage("请打开邮箱确认"),
-    "supabase_sign_failure": MessageLookupByLibrary.simpleMessage("登录失败!"),
-    "supabase_sign_in": MessageLookupByLibrary.simpleMessage("登录"),
-    "supabase_sign_success": MessageLookupByLibrary.simpleMessage("登录成功!"),
-    "supabase_sign_up": MessageLookupByLibrary.simpleMessage("注册"),
-    "supabase_unexpected_err": m5,
-    "supabase_update_password": MessageLookupByLibrary.simpleMessage("更新密码"),
     "support_donate": MessageLookupByLibrary.simpleMessage("捐赠支持"),
     "switch_platform": MessageLookupByLibrary.simpleMessage("切换直播平台"),
     "telegram": MessageLookupByLibrary.simpleMessage("Telegram"),
-    "timedclose_time": m6,
+    "timedclose_time": m5,
     "unfollow": MessageLookupByLibrary.simpleMessage("取消关注"),
-    "unfollow_message": m7,
+    "unfollow_message": m6,
     "update": MessageLookupByLibrary.simpleMessage("更新"),
     "version": MessageLookupByLibrary.simpleMessage("版本"),
     "video": MessageLookupByLibrary.simpleMessage("视频"),

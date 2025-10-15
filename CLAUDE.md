@@ -370,6 +370,14 @@ lib/
 - 支持的语言通过`SettingsService.languages`配置
 - 修改ARB文件后运行`flutter pub run intl_utils:generate`生成代码
 
+**重要变更（v2.0.1）：**
+- 已删除所有 Supabase 相关国际化字符串（共20+个）
+- `app_legalese` 已更新，说明改为 WebDAV 同步
+- 如需修改国际化文件：
+  1. 编辑 `lib/common/l10n/intl_*.arb`
+  2. 运行 `flutter pub run intl_utils:generate`
+  3. 重新构建应用
+
 ### 持久化存储
 
 - **SharedPreferences**：通过`PrefUtil`封装，存储用户设置
