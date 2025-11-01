@@ -1,0 +1,163 @@
+# ============================================
+# 纯源代码仓库配置
+# 只保留：lib/, ios/, macos/, scripts/, README
+# ============================================
+
+# 资源文件（不上传）
+assets/
+
+# 配置文件（不上传）
+pubspec.yaml
+pubspec.lock
+analysis_options.yaml
+build.yaml
+.metadata
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# IDE 配置（不提交，每个人使用自己的配置）
+.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+**/build/
+macos/build/
+ios/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+key.properties
+**/*.keystore
+**/*.jks
+
+# 敏感证书和私钥文件（绝对不能提交！）
+**/*.key
+**/*.pem
+**/*.pfx
+**/*.p12
+**/*.crt
+**/*.csr
+**/*.cer
+
+# iOS/macOS 开发临时文件
+ios/.cache/
+ios/Podfile.lock
+macos/Podfile.lock
+**/Pods/
+**/.DS_Store
+
+# Flutter 自动生成的文件（不应提交）
+ios/Flutter/GeneratedPluginRegistrant.*
+macos/Flutter/GeneratedPluginRegistrant.*
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/ephemeral/
+macos/Flutter/ephemeral/
+macos/BUILD_SUCCESS.md
+
+# Flutter 在 iOS/macOS 目录生成的冗余文件
+ios/.metadata
+ios/README.md
+ios/analysis_options.yaml
+ios/pubspec.yaml
+ios/pubspec.lock
+ios/.gitignore
+ios/ios.iml
+ios/.idea/
+ios/ios/
+ios/lib/
+ios/test/
+macos/.metadata
+macos/README.md
+
+# IDE 配置
+.idea/
+
+# 导出配置（可能包含敏感信息）
+export_options_dev.plist
+ios/ExportOptions.plist
+
+# Xcode 用户配置和临时文件
+**/DerivedData/
+**/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# macOS/iOS 构建产物
+*.dmg
+temp.dmg
+*.ipa
+*.xcarchive
+*.app.zip
+
+# 构建日志和报告
+scripts/*.log
+scripts/build_*.log
+*.build.log
+
+# Flutter DevTools 配置
+devtools_options.yaml
+distribute_options.yaml
+
+# Claude Code 工作文件（本地使用，不提交）
+.claude/
+.claude/**
+CLAUDE.md
+AGENTS.md
+
+# 个人开发配置和临时文件
+*.local.json
+*.local.md
+.vscode/settings.json
+
+# Git 临时文件
+*.orig
+*.rej
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+*.mobileprovision
+
+# 个人备份和笔记
+TODO.md
+NOTES.md
+备份/
+草稿/

@@ -1,0 +1,84 @@
+# 定义全局平台版本（必须与 Flutter 框架版本一致）
+platform :ios, '13.0'
+
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+
+    # 强制设置最低部署目标为 13.0（必须与 Flutter 框架一致）
+    target.build_configurations.each do |config|
+      if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 13.0
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      end
+
+      # 🔧 抑制第三方库的所有警告（强迫症福音）
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'GLES_SILENCE_DEPRECATION=1'
+
+      # 禁用所有废弃 API 警告
+      config.build_settings['GCC_WARN_DEPRECATED_FUNCTIONS'] = 'NO'
+      config.build_settings['CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS'] = 'NO'
+      config.build_settings['GCC_WARN_DEPRECATED_DECLARATIONS'] = 'NO'
+
+      # 禁用类型转换警告
+      config.build_settings['GCC_WARN_64_TO_32_BIT_CONVERSION'] = 'NO'
+      config.build_settings['CLANG_WARN_IMPLICIT_SIGN_CONVERSION'] = 'NO'
+
+      # 禁用未使用变量警告
+      config.build_settings['GCC_WARN_UNUSED_VARIABLE'] = 'NO'
+      config.build_settings['GCC_WARN_UNUSED_FUNCTION'] = 'NO'
+
+      # 禁用其他常见警告
+      config.build_settings['CLANG_WARN_DOCUMENTATION_COMMENTS'] = 'NO'
+      config.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'
+
+      # 通过编译器标志抑制所有废弃声明警告
+      config.build_settings['WARNING_CFLAGS'] ||= ['$(inherited)']
+      config.build_settings['WARNING_CFLAGS'] << '-Wno-deprecated-declarations'
+      config.build_settings['WARNING_CFLAGS'] << '-Wno-deprecated-implementations'
+      config.build_settings['WARNING_CFLAGS'] << '-Wno-shorten-64-to-32'
+      config.build_settings['WARNING_CFLAGS'] << '-Wno-unused-variable'
+      config.build_settings['WARNING_CFLAGS'] << '-Wno-unreachable-code'
+
+      # Swift 警告抑制
+      config.build_settings['SWIFT_SUPPRESS_WARNINGS'] = 'YES'
+      config.build_settings['OTHER_SWIFT_FLAGS'] ||= ['$(inherited)']
+      config.build_settings['OTHER_SWIFT_FLAGS'] << '-suppress-warnings'
+    end
+  end
+end
